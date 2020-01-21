@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
 
 func (v Vertex) String() string {
 	return string(v.cross)
@@ -12,14 +16,15 @@ type Vertex struct {
 }
 
 func main() {
+	scanner := bufio.NewReader(os.Stdin)
 	var T int
 	fmt.Scanf("%d", &T)
 	for ; T > 0; T-- {
 		var W, H, I, N, V int
-		fmt.Scanf("%d%d%d%d%d", &W, &H, &I, &I, &N, &V)
+		fmt.Scanf("%d%d%d%d%d", &W, &H, &I, &N, &V)
+		println(W, H, I, N, V)
 		H -= 2 // prázdné řádky můžu přeskočit
 		W -= 2 // prázdné sloupce můžu přeskočit
-		println(H, W)
 		// inicializace grafu
 		var graph [][]Vertex
 		graph = make([][]Vertex, H)
@@ -27,29 +32,31 @@ func main() {
 			graph[i] = make([]Vertex, W)
 		}
 		// přeskočím 2 řádky, okraj a mezery
-		fmt.Scanln()
-		fmt.Scanln()
+		scanner.ReadBytes('\n')
+		scanner.ReadBytes('\n')
 		for y := 0; y < H; y++ {
-			fmt.Scanf("| ")
+			scanner.ReadBytes(' ')
 			for x := 0; x < W; x++ {
 				var c rune
-				fmt.Scan(&c)
+				tmp, _ := scanner.ReadByte()
+				c = rune(tmp)
 				graph[y][x].cross = c
 			}
-			fmt.Scanf(" |")
-		}
-		for ; I > 0; I-- {
-			fmt.Scanln()
+			scanner.ReadBytes('\n')
 		}
 		// přeskočím 2 řádky, okraj a mezery
-		fmt.Scanln()
-		fmt.Scanln()
+		scanner.ReadBytes('\n')
+		scanner.ReadBytes('\n')
+		// scan vstupu
+		for ; I > 0; I-- {
+			scanner.ReadBytes('\n')
+		}
 		for y := 0; y < H; y++ {
 			for x := 0; x < W; x++ {
 				fmt.Print(graph[y][x])
 			}
 			println()
 		}
-		println()
+		println("READ OK")
 	}
 }
