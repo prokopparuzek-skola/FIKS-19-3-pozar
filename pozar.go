@@ -7,7 +7,7 @@ import (
 )
 
 func (v Vertex) String() string {
-	return string(v.cross)
+	return fmt.Sprintf("%c", v.cross)
 }
 
 type Vertex struct {
@@ -18,10 +18,10 @@ type Vertex struct {
 func main() {
 	scanner := bufio.NewReader(os.Stdin)
 	var T int
-	fmt.Scanf("%d", &T)
+	fmt.Fscanf(scanner, "%d\n", &T)
 	for ; T > 0; T-- {
 		var W, H, I, N, V int
-		fmt.Scanf("%d%d%d%d%d", &W, &H, &I, &N, &V)
+		fmt.Fscanf(scanner, "%d%d%d%d%d\n", &W, &H, &I, &N, &V)
 		println(W, H, I, N, V)
 		H -= 2 // prázdné řádky můžu přeskočit
 		W -= 2 // prázdné sloupce můžu přeskočit
@@ -55,8 +55,7 @@ func main() {
 			for x := 0; x < W; x++ {
 				fmt.Print(graph[y][x])
 			}
-			println()
+			fmt.Println()
 		}
-		println("READ OK")
 	}
 }
