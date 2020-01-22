@@ -33,6 +33,53 @@ type Vertex struct {
 	next  [5]int
 }
 
+func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
+	out = make([][]bool, monuments)
+	for i := range out {
+		out[i] = make([]bool, len(in[0]))
+	}
+	for _, input := range in {
+		println(input)
+		mapa := make([][][][2]int, len(graph))
+		for i := range mapa {
+			mapa[i] = make([][][2]int, len(graph[0]))
+			for j := range mapa[i] {
+				mapa[i][j] = make([][2]int, 0) // 0: kdy; 1: kam
+			}
+		}
+		var AQueue, FQueue []int
+		var canFire map[int]bool
+		AQueue = make([]int, 0)
+		FQueue = make([]int, 0)
+		canFire = make(map[int]bool)
+		for i, v := range graph[len(graph)-1] {
+			if v.cross == '^' {
+				AQueue = append(AQueue, len(graph)-1*len(graph[0])+i)
+			}
+		}
+		for len(AQueue) > 0 {
+			for _, v := range AQueue {
+				y := v / len(graph)
+				x := v % len(graph)
+				s := graph[y][x]
+				c := s.cross
+				switch c {
+				case '.':
+					for _, to := range s.next {
+						if to == -1 {
+							continue
+						}
+					}
+				case '=':
+				default:
+					continue
+				}
+			}
+		}
+	}
+	return
+}
+
 func main() {
 	scanner := bufio.NewReader(os.Stdin)
 	var T int
