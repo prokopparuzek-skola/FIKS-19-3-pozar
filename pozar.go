@@ -38,42 +38,70 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 	for i := range out {
 		out[i] = make([]bool, len(in[0]))
 	}
-	for _, input := range in {
-		println(input)
-		mapa := make([][][][2]int, len(graph))
+	for Istep, input := range in {
+		mapa := make([][]map[int]int, len(graph))
 		for i := range mapa {
-			mapa[i] = make([][][2]int, len(graph[0]))
+			mapa[i] = make([]map[int]int, len(graph[0]))
 			for j := range mapa[i] {
-				mapa[i][j] = make([][2]int, 0) // 0: kdy; 1: kam
+				mapa[i][j] = make(map[int]int) // if exist return step; odkud
 			}
 		}
 		var AQueue, FQueue []int
-		var canFire map[int]bool
 		AQueue = make([]int, 0)
 		FQueue = make([]int, 0)
-		canFire = make(map[int]bool)
+		step := 0
 		for i, v := range graph[len(graph)-1] {
 			if v.cross == '^' {
-				AQueue = append(AQueue, len(graph)-1*len(graph[0])+i)
+				if input[step] {
+					AQueue = append(AQueue, (len(graph)-1)*len(graph[0])+i)
+				}
+				step++
 			}
 		}
+		step = 0 // počítadlo kroků
 		for len(AQueue) > 0 {
+			//fmt.Println(AQueue)
 			for _, v := range AQueue {
 				y := v / len(graph)
 				x := v % len(graph)
 				s := graph[y][x]
 				c := s.cross
 				switch c {
+				case '^':
+					fallthrough
 				case '.':
 					for _, to := range s.next {
+						Fy := to / len(graph)
+						Fx := to % len(graph)
 						if to == -1 {
 							continue
 						}
+						_, err := mapa[Fy][Fx][v]
+						if err {
+							continue
+						}
+						//fmt.Print(to, ": ")
+						//fmt.Println(Fy, Fx)
+						FQueue = append(FQueue, to)
+						mapa[Fy][Fx][v] = step
 					}
 				case '=':
 				default:
 					continue
 				}
+			}
+			step++
+			AQueue = FQueue
+			FQueue = make([]int, 0)
+		}
+		step = 0
+		//fmt.Println(mapa[0])
+		for i, o := range graph[0] {
+			if o.cross == '?' {
+				if len(mapa[0][i]) > 0 {
+					out[Istep][step] = true
+				}
+				step++
 			}
 		}
 	}
@@ -112,13 +140,13 @@ func main() {
 		scanner.ReadBytes('\n')
 		scanner.ReadBytes('\n')
 		// scan vstupu
+		var tmp int
 		var input [][]bool
 		input = make([][]bool, I)
 		for i := 0; i < I; i++ {
 			input[i] = make([]bool, N)
 			for j := 0; j < N; j++ {
-				var tmp int
-				fmt.Fscanf(scanner, " %d ", &tmp)
+				fmt.Fscan(scanner, &tmp)
 				if tmp == 1 {
 					input[i][j] = true
 				} else {
@@ -141,16 +169,31 @@ func main() {
 				} else {
 					switch graph[y][x] {
 					case '-':
-						storeGraph[y/2][(x+1)/2].next[WEST] = y/4*toOdd(H) + (x-1)/2 // H též potřeba / 2
-						storeGraph[y/2][(x-1)/2].next[EAST] = y/4*toOdd(H) + (x+1)/2
+						storeGraph[y/2][(x+1)/2].next[WEST] = y*toOdd(H)/4 + (x-1)/2 // H též potřeba / 2
+						storeGraph[y/2][(x-1)/2].next[EAST] = y*toOdd(H)/4 + (x+1)/2
 					case '|':
 						storeGraph[(y+1)/2][x/2].next[NORD] = (y-1)*toOdd(H)/4 + x/2
 					case '/':
-						storeGraph[(y+1)/2][(x-1)/2].next[NEAST] = (y-1)/4*toOdd(H) + (x+1)/2
+						storeGraph[(y+1)/2][(x-1)/2].next[NEAST] = (y-1)*toOdd(H)/4 + (x+1)/2
 					case '\\':
-						storeGraph[(y+1)/2][(x+1)/2].next[NWEST] = (y-1)/4*toOdd(H) + (x-1)/2
+						storeGraph[(y+1)/2][(x+1)/2].next[NWEST] = (y-1)*toOdd(H)/4 + (x-1)/2
 					}
 				}
+			}
+		}
+		out := fire(storeGraph, input, I)
+		for _, ca := range out {
+			for _, f := range ca[:len(ca)-1] {
+				if f {
+					fmt.Print("1 ")
+				} else {
+					fmt.Print("0 ")
+				}
+			}
+			if ca[len(ca)-1] {
+				fmt.Println("1")
+			} else {
+				fmt.Println("0")
 			}
 		}
 		/*
