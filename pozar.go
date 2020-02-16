@@ -33,6 +33,35 @@ type Vertex struct {
 	next  [5]int
 }
 
+func contain(mapa map[int]int, v int) bool {
+	for test := range mapa {
+		if test == v {
+			return true
+		}
+	}
+	return false
+}
+
+func line(Px, Py, x, y int) (Fx, Fy int) {
+	// řeší X
+	if Px < x {
+		Fx = x + 1
+	} else if Px > x {
+		Fx = x - 1
+	} else {
+		Fx = x
+	}
+	// řeší Y
+	if Py < y {
+		Fy = y + 1
+	} else if Py > y {
+		Fy = y - 1
+	} else {
+		Fy = y
+	}
+	return
+}
+
 func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 	out = make([][]bool, monuments)
 	for i := range out {
@@ -77,7 +106,7 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 							continue
 						}
 						_, err := mapa[Fy][Fx][v]
-						if err {
+						if err || contain(mapa[y][x], to) {
 							continue
 						}
 						//fmt.Print(to, ": ")
@@ -86,6 +115,30 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 						mapa[Fy][Fx][v] = step
 					}
 				case '=':
+					for Pv, Ps := range mapa[y][x] {
+						if Ps == (step - 1) {
+							Py := Pv / len(graph)
+							Px := Pv % len(graph)
+							for _, to := range s.next {
+								Fy := to / len(graph)
+								Fx := to % len(graph)
+								PredictX, PredictY := line(Px, Py, x, y)
+								if to == -1 {
+									continue
+								} else if PredictX != Fx || PredictY != Fy {
+									continue
+								}
+								_, err := mapa[Fy][Fx][v]
+								if err || contain(mapa[y][x], to) {
+									continue
+								}
+								//fmt.Print(to, ": ")
+								//fmt.Println(Fy, Fx)
+								FQueue = append(FQueue, to)
+								mapa[Fy][Fx][v] = step
+							}
+						}
+					}
 				default:
 					continue
 				}
