@@ -166,6 +166,31 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 						FQueue = append(FQueue, to)
 						mapa[Fy][Fx][v] = step
 					}
+				case 'U':
+					countStep := 0
+					for _, testStep := range mapa[y][x] {
+						if testStep == step-1 {
+							countStep++
+						}
+					}
+					if countStep >= 2 {
+						continue
+					}
+					for _, to := range s.next {
+						Fy := to / len(graph)
+						Fx := to % len(graph)
+						if to == -1 {
+							continue
+						}
+						_, err := mapa[Fy][Fx][v]
+						if err || contain(mapa[y][x], to) {
+							continue
+						}
+						//fmt.Print(to, ": ")
+						//fmt.Println(Fy, Fx)
+						FQueue = append(FQueue, to)
+						mapa[Fy][Fx][v] = step
+					}
 				default:
 					continue
 				}
