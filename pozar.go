@@ -98,6 +98,8 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 				switch c {
 				case '^':
 					fallthrough
+				case 'X':
+					fallthrough
 				case '.':
 					for _, to := range s.next {
 						Fy := to / len(graph)
