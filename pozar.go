@@ -62,17 +62,36 @@ func line(Px, Py, x, y int) (Fx, Fy int) {
 	return
 }
 
-func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
-	out = make([][]bool, monuments)
+func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
+	out = make([][]bool, len(in))
 	for i := range out {
-		out[i] = make([]bool, len(in[0]))
+		out[i] = make([]bool, monuments)
 	}
 	for Istep, input := range in {
+		graph := make([][]Vertex, len(graphRaw))
+		for i := range graph {
+			graph[i] = make([]Vertex, len(graphRaw[0]))
+			copy(graph[i], graphRaw[i])
+		}
 		mapa := make([][]map[int]int, len(graph))
 		for i := range mapa {
 			mapa[i] = make([]map[int]int, len(graph[0]))
 			for j := range mapa[i] {
 				mapa[i][j] = make(map[int]int) // if exist return step; odkud
+			}
+		}
+		var checkV []int
+		checkV = make([]int, 0)
+		for i, x := range graph {
+			for j, v := range x {
+				switch v.cross {
+				case 'Y':
+					fallthrough
+				case 'D':
+					fallthrough
+				case 'B':
+					checkV = append(checkV, i*len(graph[0])+j)
+				}
 			}
 		}
 		var AQueue, FQueue []int
@@ -87,14 +106,18 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 				step++
 			}
 		}
-		step = 0 // počítadlo kroků
+		step = 0            // počítadlo kroků
+		var nextRound []int // vrcholy pro pozdější projití
+		nextRound = make([]int, 0)
+	next:
 		for len(AQueue) > 0 {
 			//fmt.Println(AQueue)
 			for _, v := range AQueue {
-				y := v / len(graph)
-				x := v % len(graph)
+				y := v / len(graph[0])
+				x := v % len(graph[0])
 				s := graph[y][x]
 				c := s.cross
+				//fmt.Println(graph[y][x])
 				switch c {
 				case '^':
 					fallthrough
@@ -102,8 +125,8 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 					fallthrough
 				case '.':
 					for _, to := range s.next {
-						Fy := to / len(graph)
-						Fx := to % len(graph)
+						Fy := to / len(graph[0])
+						Fx := to % len(graph[0])
 						if to == -1 {
 							continue
 						}
@@ -119,11 +142,11 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 				case '=':
 					for Pv, Ps := range mapa[y][x] {
 						if Ps == (step - 1) {
-							Py := Pv / len(graph)
-							Px := Pv % len(graph)
+							Py := Pv / len(graph[0])
+							Px := Pv % len(graph[0])
 							for _, to := range s.next {
-								Fy := to / len(graph)
-								Fx := to % len(graph)
+								Fy := to / len(graph[0])
+								Fx := to % len(graph[0])
 								PredictX, PredictY := line(Px, Py, x, y)
 								if to == -1 {
 									continue
@@ -152,8 +175,8 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 						continue
 					}
 					for _, to := range s.next {
-						Fy := to / len(graph)
-						Fx := to % len(graph)
+						Fy := to / len(graph[0])
+						Fx := to % len(graph[0])
 						if to == -1 {
 							continue
 						}
@@ -177,8 +200,8 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 						continue
 					}
 					for _, to := range s.next {
-						Fy := to / len(graph)
-						Fx := to % len(graph)
+						Fy := to / len(graph[0])
+						Fx := to % len(graph[0])
 						if to == -1 {
 							continue
 						}
@@ -191,6 +214,16 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 						FQueue = append(FQueue, to)
 						mapa[Fy][Fx][v] = step
 					}
+				case 'Y':
+					fallthrough
+				case 'D':
+					nextRound = append(nextRound, v)
+				case 'B':
+					if len(mapa[y][x]) == 1 {
+						continue
+					} else {
+						nextRound = append(nextRound, v)
+					}
 				default:
 					continue
 				}
@@ -198,6 +231,25 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 			step++
 			AQueue = FQueue
 			FQueue = make([]int, 0)
+		}
+		//fmt.Println(checkV, nextRound)
+		for _, stepped := range nextRound {
+			for i, check := range checkV {
+				if stepped == check {
+					checkV[i], checkV[0] = checkV[0], checkV[i]
+					checkV = checkV[1:]
+				}
+			}
+		}
+		if len(checkV) != 0 {
+			AQueue = checkV
+			nextRound = checkV
+			for _, v := range AQueue {
+				x := v % len(graph[0])
+				y := v / len(graph[0])
+				graph[y][x].cross = '^'
+			}
+			goto next
 		}
 		step = 0
 		//fmt.Println(mapa[0])
@@ -216,10 +268,10 @@ func fire(graph [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 func main() {
 	scanner := bufio.NewReader(os.Stdin)
 	var T int
-	fmt.Fscanf(scanner, "%d\n", &T)
+	fmt.Fscanln(scanner, &T)
 	for ; T > 0; T-- {
 		var W, H, I, N, V int
-		fmt.Fscanf(scanner, "%d%d%d%d%d\n", &W, &H, &I, &N, &V)
+		fmt.Fscanln(scanner, &W, &H, &I, &N, &V)
 		H -= 2 // prázdné řádky můžu přeskočit
 		W -= 2 // prázdné sloupce můžu přeskočit
 		// inicializace grafu
@@ -259,6 +311,7 @@ func main() {
 				}
 			}
 		}
+		fmt.Fscanf(scanner, "%*c")
 		var storeGraph [][]Vertex
 		storeGraph = make([][]Vertex, toOdd(H)/2)
 		for i := range storeGraph {
@@ -274,19 +327,19 @@ func main() {
 				} else {
 					switch graph[y][x] {
 					case '-':
-						storeGraph[y/2][(x+1)/2].next[WEST] = y*toOdd(H)/4 + (x-1)/2 // H též potřeba / 2
-						storeGraph[y/2][(x-1)/2].next[EAST] = y*toOdd(H)/4 + (x+1)/2
+						storeGraph[y/2][(x+1)/2].next[WEST] = y*toOdd(W)/4 + (x-1)/2 // H též potřeba / 2
+						storeGraph[y/2][(x-1)/2].next[EAST] = y*toOdd(W)/4 + (x+1)/2
 					case '|':
-						storeGraph[(y+1)/2][x/2].next[NORD] = (y-1)*toOdd(H)/4 + x/2
+						storeGraph[(y+1)/2][x/2].next[NORD] = (y-1)*toOdd(W)/4 + x/2
 					case '/':
-						storeGraph[(y+1)/2][(x-1)/2].next[NEAST] = (y-1)*toOdd(H)/4 + (x+1)/2
+						storeGraph[(y+1)/2][(x-1)/2].next[NEAST] = (y-1)*toOdd(W)/4 + (x+1)/2
 					case '\\':
-						storeGraph[(y+1)/2][(x+1)/2].next[NWEST] = (y-1)*toOdd(H)/4 + (x-1)/2
+						storeGraph[(y+1)/2][(x+1)/2].next[NWEST] = (y-1)*toOdd(W)/4 + (x-1)/2
 					}
 				}
 			}
 		}
-		out := fire(storeGraph, input, I)
+		out := fire(storeGraph, input, V)
 		for _, ca := range out {
 			for _, f := range ca[:len(ca)-1] {
 				if f {
