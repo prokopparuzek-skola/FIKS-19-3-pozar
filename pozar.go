@@ -166,10 +166,8 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 					}
 				case 'A':
 					countStep := 0
-					for _, testStep := range mapa[y][x] {
-						if testStep == step-1 {
-							countStep++
-						}
+					for _, _ = range mapa[y][x] {
+						countStep++
 					}
 					if countStep < 2 {
 						continue
@@ -191,10 +189,8 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 					}
 				case 'U':
 					countStep := 0
-					for _, testStep := range mapa[y][x] {
-						if testStep == step-1 {
-							countStep++
-						}
+					for _, _ = range mapa[y][x] {
+						countStep++
 					}
 					if countStep >= 2 {
 						continue
