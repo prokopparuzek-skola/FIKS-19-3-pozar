@@ -81,13 +81,13 @@ func revers(mapa [][]map[int]int, graph [][]Vertex, v int, step int) (prec []int
 			Px := Pv % len(graph[0])
 			if graph[Py][Px].cross >= 65 && graph[Py][Px].cross <= 90 || graph[Py][Px].cross == '^' {
 				prec = append(prec, Pv)
-				return
+				continue
 			} else {
 				rev := revers(mapa, graph, Pv, step-1)
 				for _, r := range rev {
 					prec = append(prec, r)
 				}
-				return
+				continue
 			}
 		}
 	}
@@ -113,7 +113,7 @@ func makeNet(rawGraph [][]Vertex) (graph map[int][]int) {
 		}
 	}
 	for len(AQueue) > 0 {
-		fmt.Println(AQueue)
+		//fmt.Println(AQueue)
 		for _, v := range AQueue {
 			y := v / len(rawGraph[0])
 			x := v % len(rawGraph[0])
@@ -179,6 +179,9 @@ func makeNet(rawGraph [][]Vertex) (graph map[int][]int) {
 			case 'B':
 				prec := revers(mapa, rawGraph, v, step)
 				for _, p := range prec {
+					if Acontain(graph[p], v) == true {
+						continue
+					}
 					graph[p] = append(graph[p], v)
 				}
 				for _, to := range s.next {
@@ -208,7 +211,7 @@ func makeNet(rawGraph [][]Vertex) (graph map[int][]int) {
 }
 
 func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
-	fmt.Println(makeNet(graphRaw))
+	//fmt.Println(makeNet(graphRaw))
 	out = make([][]bool, len(in))
 	for i := range out {
 		out[i] = make([]bool, monuments)
