@@ -75,6 +75,10 @@ func revers(mapa [][]map[int]int, graph [][]Vertex, v int, step int) (prec []int
 	y := v / len(graph[0])
 	x := v % len(graph[0])
 	prec = make([]int, 0)
+	if graph[y][x].cross == '^' {
+		prec = append(prec, v)
+		return
+	}
 	for Pv, Ps := range mapa[y][x] {
 		if Ps == (step - 1) {
 			Py := Pv / len(graph[0])
@@ -82,32 +86,40 @@ func revers(mapa [][]map[int]int, graph [][]Vertex, v int, step int) (prec []int
 			if graph[Py][Px].cross >= 65 && graph[Py][Px].cross <= 90 || graph[Py][Px].cross == '^' {
 				prec = append(prec, Pv)
 				continue
-			} else {
-				if graph[Py][Px].cross == '=' {
-					var Fv, s int
-					for graph[Py][Px].cross == '=' {
-						Fx, Fy := line(x, y, Px, Py)
-						Fv := Fy*len(graph[0]) + Fx
-						//fmt.Println(Fv, mapa[Py][Px])
-						if contain(mapa[Py][Px], Fv) {
+			}
+			if graph[Py][Px].cross == '=' {
+				var Fv, s int
+				var Tx, Ty int = x, y
+				for graph[Py][Px].cross == '=' {
+					s++
+					Fx, Fy := line(Tx, Ty, Px, Py)
+					Fv := Fy*len(graph[0]) + Fx
+					fmt.Println(Fv, mapa[Py][Px])
+					fmt.Println(Tx, Ty, Px, Py, Fx, Fy)
+					if contain(mapa[Py][Px], Fv) {
+						if graph[Fy][Fx].cross == '=' {
+							Tx, Ty = Px, Py
+							Px, Py = Fx, Fy
+							continue
+						} else {
+							break
 						}
+					} else {
+						break
 					}
-					rev := revers(mapa, graph, Fv, step-s)
-					for _, r := range rev {
-						prec = append(prec, r)
-					}
-					continue
 				}
-				rev := revers(mapa, graph, Pv, step-1)
+				rev := revers(mapa, graph, Fv, step-s)
 				for _, r := range rev {
 					prec = append(prec, r)
 				}
 				continue
 			}
+			rev := revers(mapa, graph, Pv, step-1)
+			for _, r := range rev {
+				prec = append(prec, r)
+			}
+			continue
 		}
-	}
-	if graph[y][x].cross == '^' {
-		prec = append(prec, v)
 	}
 	return
 }
