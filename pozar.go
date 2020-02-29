@@ -34,7 +34,7 @@ type Vertex struct {
 }
 
 func contain(mapa map[int]int, v int) bool {
-	for test := range mapa {
+	for test, _ := range mapa {
 		if test == v {
 			return true
 		}
@@ -93,9 +93,7 @@ func revers(mapa [][]map[int]int, graph [][]Vertex, v int, step int) (prec []int
 				for graph[Py][Px].cross == '=' {
 					s++
 					Fx, Fy := line(Tx, Ty, Px, Py)
-					Fv := Fy*len(graph[0]) + Fx
-					fmt.Println(Fv, mapa[Py][Px])
-					fmt.Println(Tx, Ty, Px, Py, Fx, Fy)
+					Fv = Fy*len(graph[0]) + Fx
 					if contain(mapa[Py][Px], Fv) {
 						if graph[Fy][Fx].cross == '=' {
 							Tx, Ty = Px, Py
@@ -118,7 +116,6 @@ func revers(mapa [][]map[int]int, graph [][]Vertex, v int, step int) (prec []int
 			for _, r := range rev {
 				prec = append(prec, r)
 			}
-			continue
 		}
 	}
 	return
@@ -241,7 +238,7 @@ func makeNet(rawGraph [][]Vertex) (graph map[int][]int) {
 }
 
 func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
-	fmt.Println(makeNet(graphRaw))
+	//fmt.Println(makeNet(graphRaw))
 	out = make([][]bool, len(in))
 	for i := range out {
 		out[i] = make([]bool, monuments)
