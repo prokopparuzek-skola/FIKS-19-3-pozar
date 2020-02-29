@@ -83,6 +83,21 @@ func revers(mapa [][]map[int]int, graph [][]Vertex, v int, step int) (prec []int
 				prec = append(prec, Pv)
 				continue
 			} else {
+				if graph[Py][Px].cross == '=' {
+					var Fv, s int
+					for graph[Py][Px].cross == '=' {
+						Fx, Fy := line(x, y, Px, Py)
+						Fv := Fy*len(graph[0]) + Fx
+						//fmt.Println(Fv, mapa[Py][Px])
+						if contain(mapa[Py][Px], Fv) {
+						}
+					}
+					rev := revers(mapa, graph, Fv, step-s)
+					for _, r := range rev {
+						prec = append(prec, r)
+					}
+					continue
+				}
 				rev := revers(mapa, graph, Pv, step-1)
 				for _, r := range rev {
 					prec = append(prec, r)
@@ -90,6 +105,9 @@ func revers(mapa [][]map[int]int, graph [][]Vertex, v int, step int) (prec []int
 				continue
 			}
 		}
+	}
+	if graph[y][x].cross == '^' {
+		prec = append(prec, v)
 	}
 	return
 }
@@ -211,7 +229,7 @@ func makeNet(rawGraph [][]Vertex) (graph map[int][]int) {
 }
 
 func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
-	//fmt.Println(makeNet(graphRaw))
+	fmt.Println(makeNet(graphRaw))
 	out = make([][]bool, len(in))
 	for i := range out {
 		out[i] = make([]bool, monuments)
