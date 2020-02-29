@@ -79,7 +79,7 @@ func revers(mapa [][]map[int]int, graph [][]Vertex, v int, step int) (prec []int
 		if Ps == (step - 1) {
 			Py := Pv / len(graph[0])
 			Px := Pv % len(graph[0])
-			if graph[Py][Px].cross >= 65 && graph[Py][Px].cross <= 90 {
+			if graph[Py][Px].cross >= 65 && graph[Py][Px].cross <= 90 || graph[Py][Px].cross == '^' {
 				prec = append(prec, Pv)
 				return
 			} else {
@@ -113,7 +113,7 @@ func makeNet(rawGraph [][]Vertex) (graph map[int][]int) {
 		}
 	}
 	for len(AQueue) > 0 {
-		//fmt.Println(AQueue)
+		fmt.Println(AQueue)
 		for _, v := range AQueue {
 			y := v / len(rawGraph[0])
 			x := v % len(rawGraph[0])
@@ -179,7 +179,22 @@ func makeNet(rawGraph [][]Vertex) (graph map[int][]int) {
 			case 'B':
 				prec := revers(mapa, rawGraph, v, step)
 				for _, p := range prec {
-					graph[v] = append(graph[v], p)
+					graph[p] = append(graph[p], v)
+				}
+				for _, to := range s.next {
+					Fy := to / len(rawGraph[0])
+					Fx := to % len(rawGraph[0])
+					if to == -1 {
+						continue
+					}
+					_, err := mapa[Fy][Fx][v]
+					if err || contain(mapa[y][x], to) {
+						continue
+					}
+					//fmt.Print(to, ": ")
+					//fmt.Println(Fy, Fx)
+					FQueue = append(FQueue, to)
+					mapa[Fy][Fx][v] = step
 				}
 			default:
 				continue
