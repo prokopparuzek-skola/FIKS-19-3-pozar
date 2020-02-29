@@ -317,7 +317,7 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 							//fmt.Print(to, ": ")
 							//fmt.Println(Fy, Fx)
 							FnoStep = append(FnoStep, to)
-							//mapa[Fy][Fx][v] = step
+							mapa[Fy][Fx][v] = step
 						}
 						continue
 					}
@@ -351,7 +351,7 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 							//fmt.Print(to, ": ")
 							//fmt.Println(Fy, Fx)
 							FnoStep = append(FnoStep, to)
-							//mapa[Fy][Fx][v] = step
+							mapa[Fy][Fx][v] = step
 						}
 						continue
 					}
@@ -402,7 +402,7 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 							//fmt.Print(to, ": ")
 							//fmt.Println(Fy, Fx)
 							FnoStep = append(FnoStep, to)
-							//mapa[Fy][Fx][v] = step
+							mapa[Fy][Fx][v] = step
 						}
 						continue
 					}
@@ -412,47 +412,13 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 			}
 			AQueue = FQueue
 			FQueue = make([]int, 0)
-		}
-		for _, v := range AnoStep {
-			y := v / len(graph[0])
-			x := v % len(graph[0])
-			s := graph[y][x]
-			c := s.cross
-			switch c {
-			case 'Y':
-				for _, to := range net[v] {
-					Fy := to / len(graph[0])
-					Fx := to % len(graph[0])
-					_, err := mapa[Fy][Fx][v]
-					if err || contain(mapa[y][x], to) {
-						continue
-					}
-					//fmt.Print(to, ": ")
-					//fmt.Println(Fy, Fx)
-					FQueue = append(FQueue, to)
-					mapa[Fy][Fx][v] = step
-				}
-			case 'D':
-				for _, to := range net[v] {
-					Fy := to / len(graph[0])
-					Fx := to % len(graph[0])
-					_, err := mapa[Fy][Fx][v]
-					if err || contain(mapa[y][x], to) {
-						continue
-					}
-					//fmt.Print(to, ": ")
-					//fmt.Println(Fy, Fx)
-					FQueue = append(FQueue, to)
-					mapa[Fy][Fx][v] = step
-				}
-			case 'B':
-				countStep := 0
-				for _, t := range AQueue {
-					if contain(mapa[y][x], t) {
-						countStep++
-					}
-				}
-				if countStep > 1 {
+			for _, v := range AnoStep {
+				y := v / len(graph[0])
+				x := v % len(graph[0])
+				s := graph[y][x]
+				c := s.cross
+				switch c {
+				case 'Y':
 					for _, to := range net[v] {
 						Fy := to / len(graph[0])
 						Fx := to % len(graph[0])
@@ -462,11 +428,81 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 						}
 						//fmt.Print(to, ": ")
 						//fmt.Println(Fy, Fx)
-						FQueue = append(FQueue, to)
+						AQueue = append(AQueue, to)
 						mapa[Fy][Fx][v] = step
+					}
+				case 'D':
+					countStep := 0
+					for _, t := range AQueue {
+						if contain(mapa[y][x], t) {
+							countStep++
+						}
+					}
+					if countStep > 0 {
+						for _, to := range net[v] {
+							Fy := to / len(graph[0])
+							Fx := to % len(graph[0])
+							_, err := mapa[Fy][Fx][v]
+							if err || contain(mapa[y][x], to) {
+								continue
+							}
+							//fmt.Print(to, ": ")
+							//fmt.Println(Fy, Fx)
+							FnoStep = append(FnoStep, to)
+							mapa[Fy][Fx][v] = step
+						}
+					} else {
+						for _, to := range net[v] {
+							Fy := to / len(graph[0])
+							Fx := to % len(graph[0])
+							_, err := mapa[Fy][Fx][v]
+							if err || contain(mapa[y][x], to) {
+								continue
+							}
+							//fmt.Print(to, ": ")
+							//fmt.Println(Fy, Fx)
+							AQueue = append(AQueue, to)
+							mapa[Fy][Fx][v] = step
+						}
+					}
+				case 'B':
+					countStep := 0
+					for _, t := range AQueue {
+						if contain(mapa[y][x], t) {
+							countStep++
+						}
+					}
+					if countStep > 1 {
+						for _, to := range net[v] {
+							Fy := to / len(graph[0])
+							Fx := to % len(graph[0])
+							_, err := mapa[Fy][Fx][v]
+							if err || contain(mapa[y][x], to) {
+								continue
+							}
+							//fmt.Print(to, ": ")
+							//fmt.Println(Fy, Fx)
+							FnoStep = append(FnoStep, to)
+							mapa[Fy][Fx][v] = step
+						}
+					} else {
+						for _, to := range net[v] {
+							Fy := to / len(graph[0])
+							Fx := to % len(graph[0])
+							_, err := mapa[Fy][Fx][v]
+							if err || contain(mapa[y][x], to) {
+								continue
+							}
+							//fmt.Print(to, ": ")
+							//fmt.Println(Fy, Fx)
+							AQueue = append(AQueue, to)
+							mapa[Fy][Fx][v] = step
+						}
 					}
 				}
 			}
+			AnoStep = FnoStep
+			FnoStep = make([]int, 0)
 		}
 		step = 0
 		//fmt.Println(mapa[0])
