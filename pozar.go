@@ -243,6 +243,7 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 	for i := range out {
 		out[i] = make([]bool, monuments)
 	}
+	net := makeNet(graphRaw)
 	for Istep, input := range in {
 		graph := make([][]Vertex, len(graphRaw))
 		for i := range graph {
@@ -256,36 +257,24 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 				mapa[i][j] = make(map[int]int) // if exist return step; odkud
 			}
 		}
-		var checkV []int
-		checkV = make([]int, 0)
-		for i, x := range graph {
-			for j, v := range x {
-				switch v.cross {
-				case 'Y':
-					fallthrough
-				case 'D':
-					fallthrough
-				case 'B':
-					checkV = append(checkV, i*len(graph[0])+j)
-				}
-			}
-		}
 		var AQueue, FQueue []int
+		var AnoStep, FnoStep []int
 		AQueue = make([]int, 0)
 		FQueue = make([]int, 0)
+		AnoStep = make([]int, 0)
+		FnoStep = make([]int, 0)
 		step := 0
 		for i, v := range graph[len(graph)-1] {
 			if v.cross == '^' {
 				if input[step] {
 					AQueue = append(AQueue, (len(graph)-1)*len(graph[0])+i)
+				} else {
+					AnoStep = append(AnoStep, (len(graph)-1)*len(graph[0])+i)
 				}
 				step++
 			}
 		}
-		step = 0            // počítadlo kroků
-		var nextRound []int // vrcholy pro pozdější projití
-		nextRound = make([]int, 0)
-	next:
+		step = 0 // počítadlo kroků
 		for len(AQueue) > 0 {
 			//fmt.Println(AQueue)
 			for _, v := range AQueue {
@@ -298,14 +287,9 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 				case '^':
 					fallthrough
 				case 'X':
-					fallthrough
-				case '.':
-					for _, to := range s.next {
+					for _, to := range net[v] {
 						Fy := to / len(graph[0])
 						Fx := to % len(graph[0])
-						if to == -1 {
-							continue
-						}
 						_, err := mapa[Fy][Fx][v]
 						if err || contain(mapa[y][x], to) {
 							continue
@@ -315,45 +299,31 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 						FQueue = append(FQueue, to)
 						mapa[Fy][Fx][v] = step
 					}
-				case '=':
-					for Pv, Ps := range mapa[y][x] {
-						if Ps == (step - 1) {
-							Py := Pv / len(graph[0])
-							Px := Pv % len(graph[0])
-							for _, to := range s.next {
-								Fy := to / len(graph[0])
-								Fx := to % len(graph[0])
-								PredictX, PredictY := line(Px, Py, x, y)
-								if to == -1 {
-									continue
-								} else if PredictX != Fx || PredictY != Fy {
-									continue
-								}
-								_, err := mapa[Fy][Fx][v]
-								if err || contain(mapa[y][x], to) {
-									continue
-								}
-								//fmt.Print(to, ": ")
-								//fmt.Println(Fy, Fx)
-								FQueue = append(FQueue, to)
-								mapa[Fy][Fx][v] = step
-							}
-						}
-					}
 				case 'A':
 					countStep := 0
-					for _, _ = range mapa[y][x] {
-						countStep++
+					for _, b := range mapa[y][x] {
+						if b == step-1 {
+							countStep++
+						}
 					}
 					if countStep < 2 {
+						for _, to := range net[v] {
+							Fy := to / len(graph[0])
+							Fx := to % len(graph[0])
+							_, err := mapa[Fy][Fx][v]
+							if err || contain(mapa[y][x], to) {
+								continue
+							}
+							//fmt.Print(to, ": ")
+							//fmt.Println(Fy, Fx)
+							FnoStep = append(FnoStep, to)
+							//mapa[Fy][Fx][v] = step
+						}
 						continue
 					}
-					for _, to := range s.next {
+					for _, to := range net[v] {
 						Fy := to / len(graph[0])
 						Fx := to % len(graph[0])
-						if to == -1 {
-							continue
-						}
 						_, err := mapa[Fy][Fx][v]
 						if err || contain(mapa[y][x], to) {
 							continue
@@ -365,18 +335,29 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 					}
 				case 'U':
 					countStep := 0
-					for _, _ = range mapa[y][x] {
-						countStep++
+					for _, b := range mapa[y][x] {
+						if b == step-1 {
+							countStep++
+						}
 					}
 					if countStep >= 2 {
+						for _, to := range net[v] {
+							Fy := to / len(graph[0])
+							Fx := to % len(graph[0])
+							_, err := mapa[Fy][Fx][v]
+							if err || contain(mapa[y][x], to) {
+								continue
+							}
+							//fmt.Print(to, ": ")
+							//fmt.Println(Fy, Fx)
+							FnoStep = append(FnoStep, to)
+							//mapa[Fy][Fx][v] = step
+						}
 						continue
 					}
-					for _, to := range s.next {
+					for _, to := range net[v] {
 						Fy := to / len(graph[0])
 						Fx := to % len(graph[0])
-						if to == -1 {
-							continue
-						}
 						_, err := mapa[Fy][Fx][v]
 						if err || contain(mapa[y][x], to) {
 							continue
@@ -389,39 +370,103 @@ func fire(graphRaw [][]Vertex, in [][]bool, monuments int) (out [][]bool) {
 				case 'Y':
 					fallthrough
 				case 'D':
-					nextRound = append(nextRound, v)
+					continue
 				case 'B':
-					if len(mapa[y][x]) == 1 {
-						continue
+					countStep := 0
+					for _, t := range AQueue {
+						if contain(mapa[y][x], t) {
+							countStep++
+						}
+					}
+					if countStep < 2 {
+						for _, to := range net[v] {
+							Fy := to / len(graph[0])
+							Fx := to % len(graph[0])
+							_, err := mapa[Fy][Fx][v]
+							if err || contain(mapa[y][x], to) {
+								continue
+							}
+							//fmt.Print(to, ": ")
+							//fmt.Println(Fy, Fx)
+							FQueue = append(FQueue, to)
+							mapa[Fy][Fx][v] = step
+						}
 					} else {
-						nextRound = append(nextRound, v)
+						for _, to := range net[v] {
+							Fy := to / len(graph[0])
+							Fx := to % len(graph[0])
+							_, err := mapa[Fy][Fx][v]
+							if err || contain(mapa[y][x], to) {
+								continue
+							}
+							//fmt.Print(to, ": ")
+							//fmt.Println(Fy, Fx)
+							FnoStep = append(FnoStep, to)
+							//mapa[Fy][Fx][v] = step
+						}
+						continue
 					}
 				default:
 					continue
 				}
 			}
-			step++
 			AQueue = FQueue
 			FQueue = make([]int, 0)
 		}
-		//fmt.Println(checkV, nextRound)
-		for _, stepped := range nextRound {
-			for i, check := range checkV {
-				if stepped == check {
-					checkV[i], checkV[0] = checkV[0], checkV[i]
-					checkV = checkV[1:]
+		for _, v := range AnoStep {
+			y := v / len(graph[0])
+			x := v % len(graph[0])
+			s := graph[y][x]
+			c := s.cross
+			switch c {
+			case 'Y':
+				for _, to := range net[v] {
+					Fy := to / len(graph[0])
+					Fx := to % len(graph[0])
+					_, err := mapa[Fy][Fx][v]
+					if err || contain(mapa[y][x], to) {
+						continue
+					}
+					//fmt.Print(to, ": ")
+					//fmt.Println(Fy, Fx)
+					FQueue = append(FQueue, to)
+					mapa[Fy][Fx][v] = step
+				}
+			case 'D':
+				for _, to := range net[v] {
+					Fy := to / len(graph[0])
+					Fx := to % len(graph[0])
+					_, err := mapa[Fy][Fx][v]
+					if err || contain(mapa[y][x], to) {
+						continue
+					}
+					//fmt.Print(to, ": ")
+					//fmt.Println(Fy, Fx)
+					FQueue = append(FQueue, to)
+					mapa[Fy][Fx][v] = step
+				}
+			case 'B':
+				countStep := 0
+				for _, t := range AQueue {
+					if contain(mapa[y][x], t) {
+						countStep++
+					}
+				}
+				if countStep > 1 {
+					for _, to := range net[v] {
+						Fy := to / len(graph[0])
+						Fx := to % len(graph[0])
+						_, err := mapa[Fy][Fx][v]
+						if err || contain(mapa[y][x], to) {
+							continue
+						}
+						//fmt.Print(to, ": ")
+						//fmt.Println(Fy, Fx)
+						FQueue = append(FQueue, to)
+						mapa[Fy][Fx][v] = step
+					}
 				}
 			}
-		}
-		if len(checkV) != 0 {
-			AQueue = checkV
-			nextRound = checkV
-			for _, v := range AQueue {
-				x := v % len(graph[0])
-				y := v / len(graph[0])
-				graph[y][x].cross = '^'
-			}
-			goto next
 		}
 		step = 0
 		//fmt.Println(mapa[0])
